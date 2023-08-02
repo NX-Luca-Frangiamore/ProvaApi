@@ -1,7 +1,10 @@
 ﻿using Blog.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using ProvaApi.Db;
+using System.Diagnostics;
+using System.Security.Claims;
 
 namespace ProvaApi.Controllers
 {
@@ -14,16 +17,21 @@ namespace ProvaApi.Controllers
        
         [HttpGet]
         [Authorize]
-        [Route("getById")]
-        public async Task<IEnumerable<DDato>> getData(int id) { 
+        [Route("getDati")]
+        public async Task<IEnumerable<DDato>> getDati() {
+            ClaimsPrincipal principal = HttpContext.User as ClaimsPrincipal;
+            int id = Int32.Parse(principal.Claims.FirstOrDefault(s => s.Type == "id").Value);
             return await db.get(id);
         }
         [Authorize]
         [HttpPost]
-        [Route("postDatoByid")]
+        [Route("addDato")]
        
-        public async void addDato(int id,string descrizione)
+        public async void addDato(string descrizione)
         {
+            ClaimsPrincipal principal = HttpContext.User as ClaimsPrincipal;
+            int id = Int32.Parse(principal.Claims.FirstOrDefault(s => s.Type == "id").Value);
+            Console.WriteLine("id claim"+ id);
             db.addContenuto(id, descrizione);
         }
         [HttpPost]
@@ -34,10 +42,26 @@ namespace ProvaApi.Controllers
         }
 
         [HttpGet]
-        [Route("GetUtenti")]
+        [Route("getUtenti")]
         public async Task<IEnumerable<DPersona>> getUtenti()
         {
             return await db.getPersone();
+        }
+        [HttpGet]
+        [Route("getClaim")]
+        public IEnumerable<string> getClaim()
+        {
+           
+            ClaimsPrincipal principal = HttpContext.User as ClaimsPrincipal;
+            
+            if (null != principal)
+            {
+                foreach (Claim claim in principal.Claims)
+                {
+                    yield return   ("CLAIM TYPE: " + claim.Type + "; CLAIM VALUE: " + claim.Value + "</br>");
+                }
+            }
+            yield break;
         }
 
 

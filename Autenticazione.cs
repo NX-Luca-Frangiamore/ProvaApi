@@ -28,11 +28,12 @@ namespace ProvaApi
                 if (authorizationHeader != null && authorizationHeader.StartsWith("basic", StringComparison.OrdinalIgnoreCase))
                 {
                     var token = authorizationHeader.Substring("Basic ".Length).Trim();
+                    Console.WriteLine("token "+token);
                     var credentialsAsEncodedString = Encoding.UTF8.GetString(Convert.FromBase64String(token));
                     var credentials = credentialsAsEncodedString.Split(':');
                     if (await db.getId(credentials[0], credentials[1])!=0)
                     {
-                        var claims = new[] { new Claim("name", credentials[0]), new Claim(ClaimTypes.Role, "Admin") };
+                        var claims = new[] { new Claim("name", credentials[0]),new Claim("cognome", credentials[1]), new Claim("id", await db.getId(credentials[0], credentials[1])+"") };
                         var identity = new ClaimsIdentity(claims, "Basic");
                         var claimsPrincipal = new ClaimsPrincipal(identity);
                         return await Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name)));
